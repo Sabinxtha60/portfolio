@@ -1,0 +1,110 @@
+name: Build, Push & Deploy Portfolio
+
+# Runs CI on every PR/push for validation, and deploys to AWS only
+# when main is updated. Uses OIDC to assume an AWS IAM role — no
+# long-lived AWS access keys are stored in GitHub.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write   # required for OIDC -> AWS role assumption
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1                 # change to your region
+  ECR_REPOSITORY: sabin-portfolio
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint HTML
+        uses: docker://ghcr.io/htmlhint/htmlhint:1.1.4
+        continue-on-error: true
+        with:
+          args: index.html
+
+      - name: Build Docker image (smoke test only, not pushed)
+        run: docker build -t sabin-portfolio:ci .
+
+      - name: Run container smoke test
+        run: |
+          docker run -d --name smoke -p 8080:80 sabin-portfolio:ci
+          sleep 2
+          curl -sf http://localhost:8080/healthz
+          docker rm -f smoke
+
+  deploy:
+    name: Push to ECR & Deploy
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag & push image
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $REGISTRY/$ECR_REPOSITORY:latest
+
+      # ---- Option A: Deploy to a single EC2 instance via SSM (no SSH keys needed) ----
+      - name: Deploy to EC2 via AWS Systems Manager
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy sabin-portfolio $IMAGE_TAG" \
+            --parameters '{"commands":[
+              "aws ecr get-login-password --region '"$AWS_REGION"' | docker login --username AWS --password-stdin '"$REGISTRY"'",
+              "docker pull '"$REGISTRY"'/'"$ECR_REPOSITORY"':latest",
+              "docker rm -f sabin-portfolio || true",
+              "docker run -d --name sabin-portfolio --restart unless-stopped -p 80:80 '"$REGISTRY"'/'"$ECR_REPOSITORY"':latest",
+              "docker image prune -f"
+            ]}' \
+            --region "$AWS_REGION"
+
+      # ---- Option B: Deploy to ECS Fargate instead of EC2 ----
+      # Uncomment if you switch to the ECS Fargate hosting path described
+      # in README.md, and remove the EC2/SSM step above.
+      #
+      # - name: Render new ECS task definition
+      #   id: task-def
+      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   with:
+      #     task-definition: ecs/task-definition.json
+      #     container-name: sabin-portfolio
+      #     image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+      #
+      # - name: Deploy to ECS service
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+      #   with:
+      #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+      #     service: sabin-portfolio-service
+      #     cluster: sabin-portfolio-cluster
+      #     wait-for-service-stability: true

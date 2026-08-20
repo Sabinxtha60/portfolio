@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sabin Shrestha — Networking & IT Security</title>
+<meta name="description" content="Portfolio of Sabin Shrestha — Computer Networking & IT Security student, IT Support professional, and Cybersecurity enthusiast based in Lalitpur, Nepal." />
+<meta name="theme-color" content="#0b0f1a" />
+
+<!-- Open Graph -->
+<meta property="og:title" content="Sabin Shrestha — Portfolio" />
+<meta property="og:description" content="Computer Networking & IT Security | Cybersecurity | AWS Cloud" />
+<meta property="og:type" content="website" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Skip link for accessibility -->
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="noise-overlay" aria-hidden="true"></div>
+<div class="cursor-glow" aria-hidden="true"></div>
+
+<header class="nav-wrap" id="navbar">
+  <nav class="nav container">
+    <a href="#home" class="logo">SS<span class="dot">.</span></a>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about" class="nav-link">About</a></li>
+      <li><a href="#skills" class="nav-link">Skills</a></li>
+      <li><a href="#experience" class="nav-link">Experience</a></li>
+      <li><a href="#projects" class="nav-link">Projects</a></li>
+      <li><a href="#education" class="nav-link">Education</a></li>
+      <li><a href="#contact" class="nav-link">Contact</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle color theme" title="Toggle theme">
+        <svg class="icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="assets/Sabin_Shrestha_CV.pdf" class="btn btn-outline btn-sm hide-mobile" download>Resume</a>
+      <button id="navToggle" class="icon-btn hide-desktop" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="grid-lines"></div>
+      <div class="blob blob-a"></div>
+      <div class="blob blob-b"></div>
+    </div>
+
+    <div class="container hero-inner">
+      <p class="eyebrow reveal">Hi, I'm</p>
+      <h1 class="hero-title reveal">
+        <span class="gradient-text">Sabin Shrestha</span>
+      </h1>
+      <h2 class="hero-role reveal">
+        <span class="typewriter" id="typewriter"></span><span class="cursor-blink">|</span>
+      </h2>
+      <p class="hero-desc reveal">
+        Motivated Computer Networking &amp; IT Security student building hands-on expertise in
+        network infrastructure, cybersecurity and AWS cloud architecture — aiming for a long-term
+        career in Network Operations (NOC) and IT Security.
+      </p>
+
+      <div class="hero-cta reveal">
+        <a href="#projects" class="btn btn-primary">View Projects</a>
+        <a href="#contact" class="btn btn-outline">Get In Touch</a>
+      </div>
+
+      <div class="hero-socials reveal">
+        <a href="https://github.com/Sabinxtha60" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.76 1.19 1.76 1.19 1.02 1.75 2.68 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11.06 11.06 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.77.12 3.06.74.8 1.18 1.83 1.18 3.09 0 4.43-2.69 5.4-5.26 5.69.41.36.78 1.07.78 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.2.67.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+        </a>
+        <a href="https://linkedin.com/in/sabin-shrestha" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="social-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        </a>
+        <a href="mailto:sabinxtha4025@gmail.com" aria-label="Email" class="social-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <a href="#about" class="scroll-cue" aria-label="Scroll to content">
+      <span></span>
+    </a>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="container">
+      <p class="section-tag reveal">01 — About</p>
+      <h2 class="section-title reveal">Profile</h2>
+
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p>
+            Motivated Computer Networking &amp; IT Security individual with a strong foundation in
+            network monitoring, troubleshooting, and infrastructure support, built through hands-on
+            experience with Windows Server, Linux, and Cisco Packet Tracer, along with cybersecurity
+            principles and AWS cloud architecture.
+          </p>
+          <p>
+            Aiming to grow into a skilled IT &amp; NOC professional by contributing to reliable network
+            operations, proactive issue resolution, and secure infrastructure management — while
+            continuously building expertise toward a long-term career in network operations and IT
+            security.
+          </p>
+
+          <ul class="about-facts">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Tikathali, Lalitpur, Nepal
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+              +977-9864597621
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+              sabinxtha4025@gmail.com
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              English · Nepali · Hindi
+            </li>
+          </ul>
+        </div>
+
+        <div class="about-card reveal">
+          <div class="glass-card stat-card">
+            <div class="stat"><span class="stat-num" data-count="3">0</span><span class="stat-label">Personal Projects</span></div>
+            <div class="stat"><span class="stat-num" data-count="2">0</span><span class="stat-label">AWS Certifications</span></div>
+            <div class="stat"><span class="stat-num" data-count="6">0</span><span class="stat-label">Months as Cybersecurity Intern</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="section section-alt" id="skills">
+    <div class="container">
+      <p class="section-tag reveal">02 — Skills</p>
+      <h2 class="section-title reveal">What I Work With</h2>
+
+      <div class="skills-grid">
+
+        <div class="glass-card skill-card reveal">
+          <div class="skill-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3>Programming</h3>
+          <div class="tag-row">
+            <span class="tag">Python</span><span class="tag">Java</span><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span>
+          </div>
+        </div>
+
+        <div class="glass-card skill-card reveal">
+          <div class="skill-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h3>Systems &amp; Networking</h3>
+          <div class="tag-row">
+            <span class="tag">Windows Server 2022</span><span class="tag">Linux</span><span class="tag">Cisco Packet Tracer</span><span class="tag">CAT6 Cabling</span>
+          </div>
+        </div>
+
+        <div class="glass-card skill-card reveal">
+          <div class="skill-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5.25 3.6 9.74 9 11 5.4-1.26 9-5.75 9-11V7l-9-5z"/></svg>
+          </div>
+          <h3>Cybersecurity &amp; Cloud</h3>
+          <div class="tag-row">
+            <span class="tag">AWS Cloud Foundations</span><span class="tag">AWS Cloud Architecting</span><span class="tag">Security Auditing</span><span class="tag">Threat Awareness</span>
+          </div>
+        </div>
+
+        <div class="glass-card skill-card reveal">
+          <div class="skill-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.87"/></svg>
+          </div>
+          <h3>Support &amp; Soft Skills</h3>
+          <div class="tag-row">
+            <span class="tag">Printer/POS Troubleshooting</span><span class="tag">User Training</span><span class="tag">Communication</span><span class="tag">Leadership</span><span class="tag">Adaptability</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="section" id="experience">
+    <div class="container">
+      <p class="section-tag reveal">03 — Experience</p>
+      <h2 class="section-title reveal">Where I've Worked</h2>
+
+      <div class="timeline">
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-card">
+            <div class="timeline-head">
+              <h3>IT Support</h3>
+              <span class="timeline-date">Jun 2026 — Present</span>
+            </div>
+            <p class="timeline-org">Scodus Innovation Pvt. Ltd.</p>
+            <ul>
+              <li>Troubleshooting the POS system and printers.</li>
+              <li>Training users to use company software.</li>
+              <li>Managing user accounts according to their roles.</li>
+              <li>Making CAT6 cables and managing network wiring.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-card">
+            <div class="timeline-head">
+              <h3>Cyber Security Intern</h3>
+              <span class="timeline-date">May 2025 — Nov 2025</span>
+            </div>
+            <p class="timeline-org">Skill Museum and Research Center (SMaRC)</p>
+            <ul>
+              <li>Researched new and emerging trends in cybersecurity.</li>
+              <li>Taught SEP students core topics related to cybersecurity.</li>
+              <li>Educated the public on cyber-attacks and prevention during outreach events.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="section section-alt" id="projects">
+    <div class="container">
+      <p class="section-tag reveal">04 — Projects</p>
+      <h2 class="section-title reveal">Selected Work</h2>
+
+      <div class="projects-grid">
+
+        <article class="glass-card project-card reveal">
+          <div class="project-top">
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3>Aura Watch</h3>
+          </div>
+          <p>
+            A static e-commerce website for an online watch store, built with a team. Independently
+            designed and built the blog section — structuring layouts in HTML, styling for a clean,
+            consistent look in CSS, and adding interactive elements with JavaScript to improve
+            readability and engagement.
+          </p>
+          <div class="tag-row">
+            <span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span>
+          </div>
+        </article>
+
+        <article class="glass-card project-card reveal">
+          <div class="project-top">
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5 17.5 17.5M6.5 17.5 17.5 6.5"/><rect x="2" y="2" width="20" height="20" rx="4"/></svg>
+            </div>
+            <h3>Gym Management System</h3>
+          </div>
+          <p>
+            A GUI-based desktop application built in Java to streamline gym operations — add, update,
+            and remove members, distinguish premium vs. normal membership tiers, track payments, and
+            persist all data in structured text-file tables.
+          </p>
+          <div class="tag-row">
+            <span class="tag">Java</span><span class="tag">Desktop GUI</span><span class="tag">File I/O</span>
+          </div>
+        </article>
+
+        <article class="glass-card project-card reveal">
+          <div class="project-top">
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12.99V2h10.99l8.6 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1"/></svg>
+            </div>
+            <h3>Inventory Management System</h3>
+          </div>
+          <p>
+            A Python application helping wholesalers track stock in real time, auto-updating inventory
+            on purchase, applying discounts on eligible items, and generating bills — linking inventory
+            directly to billing to reduce manual error.
+          </p>
+          <div class="tag-row">
+            <span class="tag">Python</span><span class="tag">Automation</span><span class="tag">Billing</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section class="section" id="education">
+    <div class="container">
+      <p class="section-tag reveal">05 — Education</p>
+      <h2 class="section-title reveal">Academic Background</h2>
+
+      <div class="timeline">
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-card">
+            <div class="timeline-head">
+              <h3>BSc (Hons) Computer Networking &amp; IT Security</h3>
+              <span class="timeline-date">Nov 2024 — Present</span>
+            </div>
+            <p class="timeline-org">Islington College — affiliated with London Metropolitan University</p>
+            <p class="timeline-loc">Kamal Marg, Kamalpokhari, Kathmandu</p>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-card">
+            <div class="timeline-head">
+              <h3>School Leaving Certificate (SLC)</h3>
+              <span class="timeline-date">Jul 2020 — Jul 2022</span>
+            </div>
+            <p class="timeline-org">Capital College and Research Center (CCRC) — Nepal Examinations Board</p>
+            <p class="timeline-loc">Surya Kot Marg, Kathmandu</p>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-card">
+            <div class="timeline-head">
+              <h3>Secondary Education Examination (SEE)</h3>
+              <span class="timeline-date">Mar 2013 — Mar 2020</span>
+            </div>
+            <p class="timeline-org">V.S. Niketan Secondary School — Nepal Examinations Board</p>
+            <p class="timeline-loc">Sudidhanagar Marg, Kathmandu</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certifications -->
+      <div class="cert-block reveal">
+        <h3 class="cert-heading">Training &amp; Certifications</h3>
+        <div class="cert-grid">
+          <div class="glass-card cert-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 15 8.16-4.9A2 2 0 0 0 21 8.32V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v.32a2 2 0 0 0 .84 1.78L12 15z"/><path d="M21 8v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/></svg>
+            <div>
+              <strong>Global Professional Pathway Course (GPPC)</strong>
+              <span>Islington College — 2024</span>
+            </div>
+          </div>
+          <div class="glass-card cert-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5.25 3.6 9.74 9 11 5.4-1.26 9-5.75 9-11V7l-9-5z"/></svg>
+            <div>
+              <strong>AWS Academy Graduate — Cloud Foundations</strong>
+              <span>Amazon Web Services — 2026</span>
+            </div>
+          </div>
+          <div class="glass-card cert-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5.25 3.6 9.74 9 11 5.4-1.26 9-5.75 9-11V7l-9-5z"/></svg>
+            <div>
+              <strong>AWS Academy Graduate — Cloud Architecting</strong>
+              <span>Amazon Web Services — 2026</span>
+            </div>
+          </div>
+          <div class="glass-card cert-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"/><circle cx="12" cy="8" r="7"/></svg>
+            <div>
+              <strong>S.I.E.R.A — Information Security Audit</strong>
+              <span>Achievement — 2025</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section section-alt" id="contact">
+    <div class="container">
+      <p class="section-tag reveal">06 — Contact</p>
+      <h2 class="section-title reveal">Let's Connect</h2>
+      <p class="contact-lead reveal">
+        Open to IT support, NOC, and cybersecurity opportunities. Feel free to reach out —
+        I usually reply within a day.
+      </p>
+
+      <div class="contact-grid">
+        <a href="mailto:sabinxtha4025@gmail.com" class="glass-card contact-card reveal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+          <div><strong>Email</strong><span>sabinxtha4025@gmail.com</span></div>
+        </a>
+        <a href="tel:+9779864597621" class="glass-card contact-card reveal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+          <div><strong>Phone</strong><span>+977-9864597621</span></div>
+        </a>
+        <a href="https://linkedin.com/in/sabin-shrestha" target="_blank" rel="noopener noreferrer" class="glass-card contact-card reveal">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          <div><strong>LinkedIn</strong><span>/in/sabin-shrestha</span></div>
+        </a>
+        <a href="https://github.com/Sabinxtha60" target="_blank" rel="noopener noreferrer" class="glass-card contact-card reveal">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.76 1.19 1.76 1.19 1.02 1.75 2.68 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11.06 11.06 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.77.12 3.06.74.8 1.18 1.83 1.18 3.09 0 4.43-2.69 5.4-5.26 5.69.41.36.78 1.07.78 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.2.67.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+          <div><strong>GitHub</strong><span>/Sabinxtha60</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p>&copy; <span id="year"></span> Sabin Shrestha. Built with HTML, CSS &amp; JavaScript.</p>
+    <a href="#home" class="back-top">Back to top ↑</a>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>

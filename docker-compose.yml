@@ -1,0 +1,8 @@
+services:
+  portfolio:
+    build: .
+    image: sabin-portfolio:local
+    container_name: sabin-portfolio
+    ports:
+      - "8080:80"
+    restart: unless-stopped
