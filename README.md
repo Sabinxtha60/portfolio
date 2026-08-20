@@ -13,10 +13,51 @@ sabin-portfolio/
 ├── Dockerfile                   # nginx-based production image
 ├── nginx/nginx.conf             # gzip, cache headers, /healthz
 ├── docker-compose.yml           # local dev
-├── .github/workflows/deploy.yml # CI/CD pipeline
+├── .github/workflows/deploy.yml # CI/CD pipeline (AWS demo)
+├── .github/workflows/pages.yml  # CI/CD pipeline (permanent GitHub Pages host)
 ├── ecs/task-definition.json     # optional ECS Fargate path
 └── aws/*.json                   # IAM policy templates
 ```
+
+---
+
+## ⚠️ If you're using an AWS Academy Learner Lab account
+
+Read this before wiring up the AWS pipeline. AWS Academy Learner Lab is a
+**time-boxed sandbox**, not a normal AWS account, and it cannot host an
+always-on site:
+
+- Your session **auto-stops after ~4 hours**, which stops your EC2 instance —
+  the site goes offline until you manually restart the lab.
+- The AWS credentials it gives you are **temporary and rotate every session**,
+  so GitHub secrets built on them go stale in hours.
+- Student accounts usually **can't create custom IAM roles or an OIDC
+  provider** — which the `deploy.yml` pipeline needs for keyless AWS auth.
+- The underlying account can be **reset between terms**, wiping anything
+  you created.
+
+**The strategy this repo uses:** GitHub Pages ([`pages.yml`](.github/workflows/pages.yml))
+is the **permanent, always-on** host — free, no session limits, deploys on
+every push to `main`. The AWS pipeline ([`deploy.yml`](.github/workflows/deploy.yml))
+stays as an **on-demand demo** you spin up inside the Learner Lab to show off
+the Docker/ECR/EC2 deployment — not something that needs to run 24/7. If you
+later get a personal (non-Academy) AWS account, the AWS pipeline works exactly
+the same way, permanently.
+
+---
+
+## 0. Permanent hosting: GitHub Pages (do this first)
+
+1. Push this repo to GitHub.
+2. In the repo: **Settings → Pages → Source → GitHub Actions**.
+3. Push to `main` (or re-run the "Deploy to GitHub Pages" workflow manually
+   from the **Actions** tab) — [`pages.yml`](.github/workflows/pages.yml)
+   publishes the site automatically.
+4. Your live URL appears in the workflow run summary and under
+   **Settings → Pages**: `https://<username>.github.io/<repo>/`.
+
+That's it — no AWS, no Docker, no server needed for this path. Every future
+`git push` to `main` redeploys it in under a minute.
 
 ---
 

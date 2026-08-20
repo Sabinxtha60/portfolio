@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+# This is the PERMANENT, always-on host for the portfolio — free, no AWS
+# session limits, deploys automatically on every push to main. Keep this
+# running alongside the AWS pipeline (deploy.yml), which is a separate,
+# on-demand demo of the Docker/ECR/EC2 deployment skills.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload site as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Publish the whole repo root (index.html, css/, js/, assets/).
+          # No build step needed — this is a plain static site.
+          path: .
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
