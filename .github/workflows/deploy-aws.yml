@@ -26,6 +26,7 @@ env:
 
 jobs:
   deploy:
+    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.AWS_SESSION_TOKEN != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials (Learner Lab session tokens)
