@@ -124,6 +124,20 @@ Resources:
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfileName
       KeyName: !If [HasKeyName, !Ref KeyName, !Ref "AWS::NoValue"]
+      # Enforce IMDSv2 (session-token-based metadata requests only) — closes
+      # off the classic SSRF-to-instance-credential-theft path that IMDSv1
+      # allows.
+      MetadataOptions:
+        HttpTokens: required
+        HttpEndpoint: enabled
+      # Encrypt the root volume at rest (AWS-managed key, no extra IAM/KMS
+      # permissions needed — works fine under a Learner Lab role).
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            Encrypted: true
+            VolumeType: gp3
+            VolumeSize: 8
       # Public IP is required here (the site needs to be reachable over HTTP,
       # and deploy-aws.yml needs SSM reachability) — declared explicitly via
       # NetworkInterfaces rather than left to the subnet's implicit
