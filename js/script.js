@@ -85,7 +85,7 @@
   /* ---------- Animated counters ---------- */
   const counters = document.querySelectorAll('.stat-num');
   const animateCounter = (el) => {
-    const target = parseInt(el.dataset.count, 10) || 0;
+    const target = Number.parseInt(el.dataset.count, 10) || 0;
     const duration = 1200;
     const start = performance.now();
     const step = (now) => {
