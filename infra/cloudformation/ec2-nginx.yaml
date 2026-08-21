@@ -131,6 +131,11 @@ Resources:
       # template instead of depending on external subnet configuration.
       NetworkInterfaces:
         - DeviceIndex: "0"
+          # checkov:skip=CKV_AWS_88: intentional — this is a public portfolio
+          # site that must be reachable over HTTP. Blast radius is limited:
+          # the security group only opens 80/tcp (+ optional restricted 22),
+          # no secrets/data live on the box, and the instance is recreated
+          # fresh each lab session.
           AssociatePublicIpAddress: true
           SubnetId: !Ref SubnetId
           GroupSet:
