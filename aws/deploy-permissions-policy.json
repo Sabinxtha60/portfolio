@@ -40,10 +40,18 @@
         "ecs:RegisterTaskDefinition",
         "ecs:UpdateService",
         "ecs:DescribeServices",
-        "ecs:DescribeTaskDefinition",
-        "iam:PassRole"
+        "ecs:DescribeTaskDefinition"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "OptionalECSPassRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskExecutionRole",
+      "Condition": {
+        "StringEquals": { "iam:PassedToService": "ecs-tasks.amazonaws.com" }
+      }
     }
   ]
 }

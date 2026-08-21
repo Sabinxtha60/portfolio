@@ -1,7 +1,14 @@
 .git
 .github
+.gitignore
 node_modules
 *.md
 .DS_Store
 Thumbs.db
 docker-compose.yml
+infra
+aws
+ecs
+.env
+.env.*
+*.tfvars

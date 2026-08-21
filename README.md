@@ -140,6 +140,18 @@ Deliberately ephemeral — no Elastic IP, nothing to preserve. The routine is:
 start your lab → create the stack → demo/work → delete the stack (or just let
 the lab stop it) → next session, create it again.
 
+**Security posture, since the instance is intentionally internet-facing:**
+- Security group opens only port 80; port 22 stays closed unless you
+  explicitly set `KeyName` + `SSHLocation`
+- IMDSv2 enforced (`MetadataOptions.HttpTokens: required`) — blocks the
+  classic SSRF → instance-credential-theft path
+- Root EBS volume encrypted at rest (AWS-managed key)
+- nginx sends a locked-down `Content-Security-Policy` plus the standard
+  hardening headers (`X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`), and hides its version string (`server_tokens off`)
+- No secrets or credentials live on the box — it only ever clones a public
+  repo and serves static files
+
 ### Prerequisite: your repo must be on GitHub and public
 The instance runs `git clone` on boot, so push this repo first:
 ```bash
