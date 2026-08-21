@@ -122,11 +122,19 @@ Resources:
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
-      SubnetId: !Ref SubnetId
-      SecurityGroupIds:
-        - !Ref WebSecurityGroup
       IamInstanceProfile: !Ref InstanceProfileName
       KeyName: !If [HasKeyName, !Ref KeyName, !Ref "AWS::NoValue"]
+      # Public IP is required here (the site needs to be reachable over HTTP,
+      # and deploy-aws.yml needs SSM reachability) — declared explicitly via
+      # NetworkInterfaces rather than left to the subnet's implicit
+      # auto-assign setting, so it's visible/auditable straight from the
+      # template instead of depending on external subnet configuration.
+      NetworkInterfaces:
+        - DeviceIndex: "0"
+          AssociatePublicIpAddress: true
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref WebSecurityGroup
       Tags:
         - Key: Name
           Value: !Ref ProjectName
