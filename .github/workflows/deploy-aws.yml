@@ -28,12 +28,34 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Decode AWS credentials
+        # Secrets are stored base64-encoded on GitHub (see README) — mainly
+        # to avoid the long AWS_SESSION_TOKEN getting mangled by copy/paste
+        # (line wraps, stray whitespace) when pasting it into the GitHub UI.
+        # ::add-mask:: makes Actions redact the decoded values from all logs
+        # from this point on, same as it does for secrets.* automatically.
+        id: creds
+        env:
+          B64_AKID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          B64_SECRET: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          B64_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+        run: |
+          AKID=$(echo "$B64_AKID" | base64 -d)
+          SECRET=$(echo "$B64_SECRET" | base64 -d)
+          TOKEN=$(echo "$B64_TOKEN" | base64 -d)
+          echo "::add-mask::$AKID"
+          echo "::add-mask::$SECRET"
+          echo "::add-mask::$TOKEN"
+          echo "akid=$AKID" >> "$GITHUB_OUTPUT"
+          echo "secret=$SECRET" >> "$GITHUB_OUTPUT"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
       - name: Configure AWS credentials (Learner Lab session tokens)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-access-key-id: ${{ steps.creds.outputs.akid }}
+          aws-secret-access-key: ${{ steps.creds.outputs.secret }}
+          aws-session-token: ${{ steps.creds.outputs.token }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Find the running instance from the CloudFormation stack

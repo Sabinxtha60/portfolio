@@ -231,21 +231,43 @@ There are two, doing two different jobs:
 
 ### One-time setup: GitHub repo secrets
 Since a Learner Lab can't create an OIDC role (see the callout up top), this
-uses the temporary credentials from **AWS Details** directly as secrets.
-**Settings → Secrets and variables → Actions → New repository secret:**
+uses the temporary credentials from **AWS Details** directly as secrets —
+**base64-encoded** (the workflow decodes them at run time; see
+`deploy-aws.yml`). Encoding avoids the long `AWS_SESSION_TOKEN` getting
+mangled by copy/paste (line wraps, stray whitespace), which is the single
+most common cause of "Could not load credentials" errors here.
 
-| Secret | Value |
-|---|---|
-| `AWS_ACCESS_KEY_ID` | from AWS Academy's "AWS Details" panel |
-| `AWS_SECRET_ACCESS_KEY` | from the same panel |
-| `AWS_SESSION_TOKEN` | from the same panel |
+They must land under **Settings → Secrets and variables → Actions →
+Repository secrets** — specifically *not* nested under an "Environments"
+section (this repo already has a `github-pages` environment from
+`pages.yml`; don't confuse the two).
+
+**Fastest way — [GitHub CLI](https://cli.github.com/), one command per
+secret, no copy/paste of the encoded blob at all:**
+```bash
+# Bash / Git Bash — run from inside the repo (gh infers which repo)
+printf '%s' 'PASTE_RAW_VALUE_FROM_AWS_DETAILS' | base64 | gh secret set AWS_ACCESS_KEY_ID
+printf '%s' 'PASTE_RAW_VALUE_FROM_AWS_DETAILS' | base64 | gh secret set AWS_SECRET_ACCESS_KEY
+printf '%s' 'PASTE_RAW_VALUE_FROM_AWS_DETAILS' | base64 | gh secret set AWS_SESSION_TOKEN
+```
+```powershell
+# PowerShell equivalent
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('PASTE_RAW_VALUE')) | gh secret set AWS_ACCESS_KEY_ID
+```
+
+**Or via the web UI:** compute the base64 yourself first (same command,
+just print it instead of piping to `gh`), then paste *that* output — not the
+raw value — into **New repository secret**.
 
 **These expire when your lab session ends (~4 hours) and rotate every new
-session** — update all three secrets each time you start a fresh lab and
-want pushes to actually reach AWS. (`gh secret set AWS_ACCESS_KEY_ID` etc.
-via the GitHub CLI is faster than the web UI if you're doing this often.)
-Forgetting to refresh them just means `deploy-aws.yml` fails with an auth
-error — `pages.yml` is completely unaffected either way.
+session** — redo this for all three every time you start a fresh lab and
+want pushes to actually reach AWS. Forgetting just means `deploy-aws.yml`
+fails with an auth error — `pages.yml` is completely unaffected either way.
+
+> Never paste the *raw* (un-encoded) key/secret/token anywhere outside your
+> own terminal or the AWS/GitHub UIs themselves — not into chat, not into a
+> file that gets committed. If one ever does leak, restart your Learner Lab
+> session immediately to invalidate it.
 
 ### Day-to-day workflow once both are set up
 ```bash
