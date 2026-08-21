@@ -1,0 +1,177 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Sabin Shrestha Portfolio — VPC, Internet Gateway, subnet, route table,
+  security group, and EC2 instance with an Elastic IP. Based on the template
+  provided in class; adapted here to auto-install Docker on boot (so the
+  CI/CD pipeline's `docker run` over SSH works immediately) and personalized
+  to this project. Builds its own VPC from scratch rather than using the
+  account's default one.
+
+Parameters:
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: >
+      Choose an existing EC2 key pair (EC2 → Key Pairs → Create key pair if
+      you don't have one yet — download the .pem, you'll need it both to
+      SSH in yourself and to base64-encode into the SSH_KEY64 GitHub secret
+      for the CI/CD pipeline).
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-igw
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: us-east-1a # change if your lab's region differs
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-subnet
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-rtb
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet
+      RouteTableId: !Ref RouteTable
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and HTTP(S) traffic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        # SSH open to 0.0.0.0/0 is required here because the CI/CD pipeline
+        # deploys from GitHub-hosted runners, which don't have a fixed IP
+        # range to allowlist. Access is still gated by the PEM key itself.
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-sg
+
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-server
+
+      ImageId: ami-084568db4383264d4 # Ubuntu 24.04 LTS, us-east-1 — re-check with
+        # `aws ec2 describe-images --region <region> --image-ids <id>` if you're
+        # in a different region or this AMI ever gets deprecated.
+
+      InstanceType: t3.micro # 2 vCPU, 1GB RAM, Free Tier eligible
+
+      KeyName: !Ref KeyPair
+
+      # Network settings
+      SubnetId: !Ref Subnet
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+
+      # IMDSv2 only — closes the SSRF-to-instance-credential-theft path
+      # IMDSv1 leaves open.
+      MetadataOptions:
+        HttpTokens: required
+        HttpEndpoint: enabled
+
+      # Configure storage
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          # Must match the AMI's actual root device name.
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: 20 # GB
+            DeleteOnTermination: true
+            Encrypted: true
+
+      # Advanced details
+      DisableApiTermination: false
+      CreditSpecification:
+        CPUCredits: standard
+
+      # Installs Docker on first boot so the CI/CD pipeline's `docker pull` /
+      # `docker run` over SSH works right away — no manual setup step needed.
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          set -euxo pipefail
+          apt-get update -y
+          apt-get install -y docker.io
+          systemctl enable --now docker
+          usermod -aG docker ubuntu
+
+  ElasticIP:
+    Description: "Elastic IP for the EC2 VM Instance"
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref EC2Instance
+      Tags:
+        - Key: Name
+          Value: sabin-portfolio-eip
+
+Outputs:
+  ElasticIPPublicIP:
+    Value: !GetAtt ElasticIP.PublicIp
+    Description: >
+      The Elastic IP — put this in the SERVER_IP repository VARIABLE (not a
+      secret) so the CI/CD pipeline knows where to SSH. Stays the same across
+      stop/start as long as the instance itself isn't deleted, since it's an
+      Elastic IP rather than an auto-assigned one.
+  PrivateIp:
+    Value: !GetAtt EC2Instance.PrivateIp
+    Description: The private IP address of the specified instance.
+  PublicDnsName:
+    Value: !GetAtt EC2Instance.PublicDnsName
+    Description: The public DNS name of the specified instance.
+  PublicIp:
+    Value: !GetAtt EC2Instance.PublicIp
+    Description: The public IP address of the specified instance.

@@ -9,41 +9,42 @@ sabin-portfolio/
 ├── index.html
 ├── css/style.css
 ├── js/script.js
-├── assets/                      # CV PDF + images
-├── Dockerfile                   # nginx-based production image
-├── nginx/nginx.conf             # gzip, cache headers, /healthz
-├── docker-compose.yml           # local dev
+├── assets/                          # CV PDF + images
+├── Dockerfile                       # nginx-based production image
+├── nginx/nginx.conf                 # gzip, cache headers, security headers, /healthz
+├── docker-compose.yml               # local dev
 ├── .github/workflows/pages.yml      # CI/CD (permanent GitHub Pages host)
-├── .github/workflows/deploy-aws.yml # CI/CD (redeploys the EC2 instance via SSM)
-├── infra/cloudformation/            # IaC: EC2 + security group (nginx, cloned from GitHub)
-├── ecs/task-definition.json     # optional, advanced: ECS Fargate path
-└── aws/*.json                   # optional, advanced: IAM policy templates for a full CI/CD-to-AWS pipeline
+├── .github/workflows/deploy-aws.yml # CI/CD (Docker Hub + SSH deploy to EC2)
+├── infra/cloudformation/ec2.yaml    # IaC: VPC + EC2 + Elastic IP (class template, adapted)
+├── ecs/task-definition.json         # optional, advanced: ECS Fargate path
+└── aws/*.json                       # optional, advanced: IAM policy templates for an OIDC-based pipeline
 ```
 
 ---
 
 ## ⚠️ If you're using an AWS Academy Learner Lab account
 
-Read this before wiring up the AWS pipeline. AWS Academy Learner Lab is a
-**time-boxed sandbox**, not a normal AWS account, and it cannot host an
-always-on site:
+AWS Academy Learner Lab is a **time-boxed sandbox**, not a normal AWS
+account:
 
-- Your session **auto-stops after ~4 hours**, which stops your EC2 instance —
-  the site goes offline until you manually restart the lab.
-- The AWS credentials it gives you are **temporary and rotate every session**,
-  so GitHub secrets built on them go stale in hours.
-- Student accounts usually **can't create custom IAM roles**, which rules out
-  a fully automated GitHub Actions → AWS pipeline (see §6).
+- Your session **auto-stops after ~4 hours**, which stops your EC2 instance
+  — the site goes offline until you restart the lab and start the instance
+  again.
+- Student accounts usually **can't create custom IAM roles**, which rules
+  out an OIDC-based GitHub Actions → AWS pipeline (see §6) — not a problem
+  here, since the pipeline in this repo uses Docker Hub + SSH instead of any
+  AWS SDK credentials at all.
 - The underlying account can be **reset between terms**, wiping anything
   you created.
 
 **The strategy this repo uses:** GitHub Pages ([`pages.yml`](.github/workflows/pages.yml))
 is the **permanent, always-on** host — free, no session limits, deploys on
-every push to `main`. The AWS EC2 setup ([§4](#4-host-it-on-aws-with-cloudformation))
-is a CloudFormation template you create fresh each lab session — and once
-it's running, [`deploy-aws.yml`](.github/workflows/deploy-aws.yml) *does*
-auto-redeploy it on every push, same as Pages, just only for as long as that
-session stays active (see [§5](#5-cicd-pipelines-github-actions)).
+every push to `main`. The EC2 server ([§4](#4-host-it-on-aws-with-cloudformation))
+uses an **Elastic IP**, so as long as the underlying instance is just
+*stopped* (not deleted) between lab sessions — which is the normal Learner
+Lab behavior — restarting it keeps the same IP and the CI/CD pipeline
+([§5](#5-cicd-pipeline-github-actions)) keeps working without touching any
+GitHub secrets again.
 
 ---
 
@@ -111,89 +112,66 @@ so the final image is ~15–20MB and needs no runtime dependencies.
 
 ---
 
-## 3. Push the image to a registry (optional)
+## 3. Push the image to Docker Hub
 
-The AWS hosting path in §4 below runs nginx **directly on EC2** and clones
-the site from GitHub — it doesn't use Docker at all. This step is only
-useful if you later want the Docker image itself running somewhere (e.g. a
-personal server, or the advanced ECS Fargate path in §6). Push to
-**Amazon ECR**:
+The AWS pipeline in §5 pulls this image on every deploy, so push it manually
+once to confirm it works before wiring up CI/CD:
 
 ```bash
-aws ecr create-repository --repository-name sabin-portfolio --region <REGION>
-
-aws ecr get-login-password --region <REGION> \
-  | docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com
-
-docker tag sabin-portfolio:local <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/sabin-portfolio:latest
-docker push <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/sabin-portfolio:latest
+docker login -u sabinxtha60
+docker tag sabin-portfolio:local sabinxtha60/sabin-portfolio
+docker push sabinxtha60/sabin-portfolio
 ```
+(Replace `sabinxtha60` everywhere in this repo with your actual Docker Hub
+username if it differs from your GitHub one — it's used in
+[`deploy-aws.yml`](.github/workflows/deploy-aws.yml).)
+
+You'll also need a **Docker Hub Access Token** for the pipeline (don't use
+your account password): **Docker Hub → Account Settings → Security → New
+Access Token** — save it, you'll paste it into a GitHub secret in §5.
 
 ---
 
 ## 4. Host it on AWS (with CloudFormation)
 
-**Architecture:** one EC2 instance, nginx installed directly on it (no
-Docker), serving the site cloned straight from your GitHub repo on boot.
-Everything is declared in [`infra/cloudformation/ec2-nginx.yaml`](infra/cloudformation/ec2-nginx.yaml).
-Deliberately ephemeral — no Elastic IP, nothing to preserve. The routine is:
-start your lab → create the stack → demo/work → delete the stack (or just let
-the lab stop it) → next session, create it again.
+**Architecture:** a from-scratch VPC (subnet, internet gateway, route table),
+one EC2 instance with Docker pre-installed via `UserData`, and an Elastic
+IP so the address stays stable across stop/start. Everything is declared in
+[`infra/cloudformation/ec2.yaml`](infra/cloudformation/ec2.yaml) — based on
+the template provided in class, adapted to auto-install Docker on boot and
+personalized to this project.
 
-**Security posture, since the instance is intentionally internet-facing:**
-- Security group opens only port 80; port 22 stays closed unless you
-  explicitly set `KeyName` + `SSHLocation`
-- IMDSv2 enforced (`MetadataOptions.HttpTokens: required`) — blocks the
-  classic SSRF → instance-credential-theft path
-- Root EBS volume encrypted at rest (AWS-managed key)
-- nginx sends a locked-down `Content-Security-Policy` plus the standard
-  hardening headers (`X-Content-Type-Options`, `X-Frame-Options`,
-  `Referrer-Policy`), and hides its version string (`server_tokens off`)
-- No secrets or credentials live on the box — it only ever clones a public
-  repo and serves static files
+**Security posture:**
+- Security group opens 22 (SSH), 80 (HTTP), 443 (HTTPS) to `0.0.0.0/0` —
+  SSH has to stay open to the world here since GitHub-hosted runners don't
+  have a fixed IP to allowlist; access is still gated by the PEM key
+- IMDSv2 enforced (`MetadataOptions.HttpTokens: required`)
+- Root EBS volume encrypted at rest
+- nginx (inside the container) sends a locked-down `Content-Security-Policy`
+  plus standard hardening headers, and hides its version string
 
-### Prerequisite: your repo must be on GitHub and public
-The instance runs `git clone` on boot, so push this repo first:
-```bash
-git add -A
-git commit -m "Add CloudFormation EC2 hosting"
-git push
-```
+### Step 1 — Create an EC2 key pair (if you don't have one)
+AWS Console → **EC2 → Key Pairs → Create key pair** → name it, type
+**RSA**, format **.pem** → download it. Keep the `.pem` file — you'll need
+it for both direct SSH access and the CI/CD secret in §5.
 
-### Option 1 — AWS Console (easiest, no CLI needed)
-
+### Option A — AWS Console (easiest, no CLI needed)
 1. Open your AWS Academy Learner Lab → **Start Lab** → wait for the green dot
-   → click **AWS Details** → **AWS Console** to open the real console in your
-   browser (already logged in, no separate login step).
-2. In the console, go to **CloudFormation → Stacks → Create stack → With new
-   resources (standard)**.
-3. **Upload a template file** → choose [`infra/cloudformation/ec2-nginx.yaml`](infra/cloudformation/ec2-nginx.yaml)
-   from this repo → **Next**.
-4. Stack name: `sabin-portfolio`. Fill in the parameters:
-   - **VpcId / SubnetId** — pick the default VPC and any subnet in it from
-     the dropdowns
-   - **InstanceProfileName** — check **IAM → Roles** in another tab for the
-     exact name (commonly `LabInstanceProfile`); leave the default if it
-     matches
-   - **RepoUrl** — your repo's HTTPS URL, e.g.
-     `https://github.com/Sabinxtha60/sabin-portfolio.git`
-   - Leave everything else at its default
-5. **Next → Next → Submit.** Watch the **Events** tab until status reads
-   `CREATE_COMPLETE` (a minute or two).
-6. Open the **Outputs** tab → click the `SiteURL` value. Give nginx another
-   minute after that if it's not up instantly (it's still cloning/starting).
+   → **AWS Details** → **AWS Console**.
+2. **CloudFormation → Stacks → Create stack → With new resources (standard)**.
+3. **Upload a template file** → choose [`infra/cloudformation/ec2.yaml`](infra/cloudformation/ec2.yaml) → **Next**.
+4. Stack name: `sabin-portfolio`. **KeyPair**: pick the key pair from Step 1.
+5. **Next → Next → Submit.** Watch **Events** until `CREATE_COMPLETE` (a
+   couple of minutes — it's building a full VPC, not just an instance).
+6. **Outputs** tab → copy the `ElasticIPPublicIP` value — that's your
+   `SERVER_IP` for §5.
 
-### Option 2 — AWS CLI (if you have it installed)
-
+### Option B — AWS CLI
 ```bash
 aws cloudformation create-stack \
   --stack-name sabin-portfolio \
-  --template-body file://infra/cloudformation/ec2-nginx.yaml \
-  --parameters \
-      ParameterKey=VpcId,ParameterValue=<your-default-vpc-id> \
-      ParameterKey=SubnetId,ParameterValue=<a-subnet-id-in-that-vpc> \
-      ParameterKey=InstanceProfileName,ParameterValue=LabInstanceProfile \
-      ParameterKey=RepoUrl,ParameterValue=https://github.com/Sabinxtha60/sabin-portfolio.git \
+  --template-body file://infra/cloudformation/ec2.yaml \
+  --parameters ParameterKey=KeyPair,ParameterValue=<your-key-pair-name> \
   --region us-east-1
 
 aws cloudformation wait stack-create-complete --stack-name sabin-portfolio --region us-east-1
@@ -201,114 +179,103 @@ aws cloudformation wait stack-create-complete --stack-name sabin-portfolio --reg
 aws cloudformation describe-stacks --stack-name sabin-portfolio --region us-east-1 \
   --query "Stacks[0].Outputs" --output table
 ```
-(Find `VpcId`/`SubnetId` with `aws ec2 describe-vpcs` / `aws ec2 describe-subnets`
-if you don't already know them.)
+
+### First-time verification
+SSH in directly once to confirm Docker installed correctly (give it a
+minute or two after `CREATE_COMPLETE` for `UserData` to finish):
+```bash
+ssh -i your-key.pem ubuntu@<ElasticIPPublicIP>
+docker --version   # should just work, no sudo needed
+exit
+```
 
 ### Redeploying after you push new commits
-Once the stack is up, set up [`deploy-aws.yml`](#5-cicd-pipelines-github-actions)
-(§5 below) once and every future `git push` redeploys this instance
-automatically — no need to touch CloudFormation again for routine content
-updates. Recreating the stack is only for when the instance itself is gone
-(lab restarted, or you deleted it on purpose).
+Once §5's secrets are set up, every `git push` to `main` rebuilds the image,
+pushes it to Docker Hub, and SSHes in to restart the container automatically
+— you don't touch CloudFormation again for routine content updates.
+Recreating the stack is only needed if the instance itself is gone (deleted
+on purpose, or the Learner Lab account was reset).
 
 ### Tearing it down
 ```bash
 aws cloudformation delete-stack --stack-name sabin-portfolio --region us-east-1
 ```
-Or **Console → Stacks → sabin-portfolio → Delete**. Next lab session, create
-it again — same template, ~2 minutes, identical result.
+Or **Console → Stacks → sabin-portfolio → Delete**.
 
 ---
 
-## 5. CI/CD pipelines (GitHub Actions)
+## 5. CI/CD pipeline (GitHub Actions)
 
-There are two, doing two different jobs:
+Two workflows, two jobs:
 
 | Workflow | Triggers on | Does |
 |---|---|---|
-| [`pages.yml`](.github/workflows/pages.yml) | every push to `main` | Publishes to GitHub Pages — your permanent link. Fully automatic, always works. |
-| [`deploy-aws.yml`](.github/workflows/deploy-aws.yml) | every push to `main`, or manually | Tells the **running** EC2 instance (via SSM) to `git pull` + reload nginx. Only works while your Learner Lab session is active. |
+| [`pages.yml`](.github/workflows/pages.yml) | every push to `main` | Publishes to GitHub Pages — your permanent link. Always works. |
+| [`deploy-aws.yml`](.github/workflows/deploy-aws.yml) | every push to `main` | Builds the Docker image, pushes to Docker Hub, SSHes into the EC2 instance to pull + restart it. |
 
 ### How `deploy-aws.yml` works
-1. Looks up the current instance ID from the `sabin-portfolio` CloudFormation
-   stack's outputs (so it doesn't matter that the instance ID changes every
-   time you recreate the stack).
-2. If the stack doesn't exist — lab not started, or you've torn it down —
-   the job **exits cleanly, not as a failure**. A green check just means "ran
-   fine," a stack-not-found here isn't a bug.
-3. If the instance exists, it sends an SSM command to run
-   `/usr/local/bin/deploy-site.sh` (baked into the instance by
-   `ec2-nginx.yaml`'s `UserData`) — that script does the `git fetch` +
-   `git reset --hard` + copy-into-nginx + `systemctl reload nginx`.
+1. **Build and push** — logs into Docker Hub, builds the image, pushes
+   `sabinxtha60/sabin-portfolio`.
+2. **Configure SSH** — sets up `~/.ssh` on the runner, disables strict host
+   key checking (the instance's host key changes if you ever recreate the
+   stack, and this is a short-lived CI runner, not a machine you reuse).
+3. **Decode SSH key** — base64-decodes the `SSH_KEY64` secret into a `.pem`
+   file used for the SSH steps.
+4. **Deploy** — three SSH commands: `docker pull`, then stop+remove the old
+   container (tolerant of it not existing yet, for the very first deploy),
+   then `docker run` the new one on port 80.
 
-### One-time setup: GitHub repo secrets
-Since a Learner Lab can't create an OIDC role (see the callout up top), this
-uses the temporary credentials from **AWS Details** directly as secrets —
-**base64-encoded** (the workflow decodes them at run time; see
-`deploy-aws.yml`). Encoding avoids the long `AWS_SESSION_TOKEN` getting
-mangled by copy/paste (line wraps, stray whitespace), which is the single
-most common cause of "Could not load credentials" errors here.
+### One-time setup: GitHub repo secrets and variable
+**Settings → Secrets and variables → Actions:**
 
-They must land under **Settings → Secrets and variables → Actions →
-Repository secrets** — specifically *not* nested under an "Environments"
-section (this repo already has a `github-pages` environment from
-`pages.yml`; don't confuse the two).
+| Type | Name | Value |
+|---|---|---|
+| Secret | `DOCKERHUB_PAT` | the Docker Hub access token from §3 |
+| Secret | `SSH_KEY64` | your `.pem` file's contents, base64-encoded (see below) |
+| **Variable** (not secret — click the **Variables** tab) | `SERVER_IP` | the `ElasticIPPublicIP` output from §4 |
 
-**Fastest way — [GitHub CLI](https://cli.github.com/), one command per
-secret, no copy/paste of the encoded blob at all:**
+Encode the `.pem` file (never paste the raw key contents anywhere, including
+here in chat — only the base64 output goes into the GitHub secret):
 ```bash
-# Bash / Git Bash — run from inside the repo (gh infers which repo)
-printf '%s' 'PASTE_RAW_VALUE_FROM_AWS_DETAILS' | base64 | gh secret set AWS_ACCESS_KEY_ID
-printf '%s' 'PASTE_RAW_VALUE_FROM_AWS_DETAILS' | base64 | gh secret set AWS_SECRET_ACCESS_KEY
-printf '%s' 'PASTE_RAW_VALUE_FROM_AWS_DETAILS' | base64 | gh secret set AWS_SESSION_TOKEN
+# Bash / Git Bash
+base64 -w0 your-key.pem   # copy the output, paste as SSH_KEY64
 ```
 ```powershell
-# PowerShell equivalent
-[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('PASTE_RAW_VALUE')) | gh secret set AWS_ACCESS_KEY_ID
+# PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("your-key.pem"))
 ```
 
-**Or via the web UI:** compute the base64 yourself first (same command,
-just print it instead of piping to `gh`), then paste *that* output — not the
-raw value — into **New repository secret**.
+Unlike an AWS Academy session's temporary credentials, **this key pair and
+the Elastic IP don't expire or rotate** — set these three once and pushes
+keep working across lab sessions, as long as the stack/instance itself
+isn't deleted.
 
-**These expire when your lab session ends (~4 hours) and rotate every new
-session** — redo this for all three every time you start a fresh lab and
-want pushes to actually reach AWS. Forgetting just means `deploy-aws.yml`
-fails with an auth error — `pages.yml` is completely unaffected either way.
-
-> Never paste the *raw* (un-encoded) key/secret/token anywhere outside your
-> own terminal or the AWS/GitHub UIs themselves — not into chat, not into a
-> file that gets committed. If one ever does leak, restart your Learner Lab
-> session immediately to invalidate it.
-
-### Day-to-day workflow once both are set up
+### Day-to-day workflow once it's all set up
 ```bash
 git add -A && git commit -m "update projects section" && git push
 ```
-That one push now updates **both** your permanent GitHub Pages site and (if
-your lab is running) the live EC2 demo.
+That one push updates **both** your permanent GitHub Pages site and the live
+EC2 server (if the instance is currently running).
 
 ---
 
 ## 6. Going further (optional, advanced)
 
-Two things are included for later, once you're on a personal AWS account (or
-if your course covers them) and want the fuller "production" pattern instead
-of the simple EC2+nginx setup above:
+For later, once you're on a personal AWS account or want the fuller
+"production" pattern instead of a single EC2 box:
 
-- **[`ecs/task-definition.json`](ecs/task-definition.json)** — run the
-  Dockerized site (built in §2) on ECS Fargate behind a Load Balancer
-  instead of a single EC2 box: scales automatically, no OS patching, costs
-  more even at idle.
-- **[`aws/*.json`](aws)** — IAM policy templates for a fully automated
-  GitHub Actions → AWS pipeline (OIDC role assumption, ECR push, deploy) —
-  the kind of setup that needs `iam:CreateRole` permissions a Learner Lab
-  account won't grant you, so it only makes sense on a personal account.
+- **[`ecs/task-definition.json`](ecs/task-definition.json)** — run the same
+  Docker image on ECS Fargate behind a Load Balancer instead: scales
+  automatically, no OS patching, costs more even at idle.
+- **[`aws/*.json`](aws)** — IAM policy templates for an OIDC-based GitHub
+  Actions → AWS pipeline (no stored AWS keys at all) — needs
+  `iam:CreateRole` permissions a Learner Lab account won't grant, so it
+  only makes sense on a personal account.
 
 ### Custom domain checklist (optional)
 - Register a domain (Route 53, Namecheap, etc.)
-- Put CloudFront or an ALB in front of the EC2 instance/ECS service and
-  request a free ACM certificate for your domain
+- Put CloudFront or an ALB in front of the EC2 instance and request a free
+  ACM certificate for your domain
 - Point an A/ALIAS record at it
 - Set the viewer/listener protocol policy to redirect HTTP → HTTPS
 
