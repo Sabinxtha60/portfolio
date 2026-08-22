@@ -15,9 +15,7 @@ sabin-portfolio/
 ├── docker-compose.yml               # local dev
 ├── .github/workflows/pages.yml      # CI/CD (permanent GitHub Pages host)
 ├── .github/workflows/deploy-aws.yml # CI/CD (Docker Hub + SSH deploy to EC2)
-├── infra/cloudformation/ec2.yaml    # IaC: VPC + EC2 + Elastic IP (class template, adapted)
-├── ecs/task-definition.json         # optional, advanced: ECS Fargate path
-└── aws/*.json                       # optional, advanced: IAM policy templates for an OIDC-based pipeline
+└── infra/cloudformation/ec2.yaml    # IaC: VPC + EC2 + Elastic IP (class template, adapted)
 ```
 
 ---
@@ -30,10 +28,10 @@ account:
 - Your session **auto-stops after ~4 hours**, which stops your EC2 instance
   — the site goes offline until you restart the lab and start the instance
   again.
-- Student accounts usually **can't create custom IAM roles**, which rules
-  out an OIDC-based GitHub Actions → AWS pipeline (see §6) — not a problem
-  here, since the pipeline in this repo uses Docker Hub + SSH instead of any
-  AWS SDK credentials at all.
+- Student accounts usually **can't create custom IAM roles**, which would
+  rule out an OIDC-based GitHub Actions → AWS pipeline — not a problem here,
+  since the pipeline in this repo uses Docker Hub + SSH instead of any AWS
+  SDK credentials at all.
 - The underlying account can be **reset between terms**, wiping anything
   you created.
 
@@ -259,18 +257,15 @@ EC2 server (if the instance is currently running).
 
 ---
 
-## 6. Going further (optional, advanced)
+## 6. Going further (optional)
 
-For later, once you're on a personal AWS account or want the fuller
-"production" pattern instead of a single EC2 box:
-
-- **[`ecs/task-definition.json`](ecs/task-definition.json)** — run the same
-  Docker image on ECS Fargate behind a Load Balancer instead: scales
-  automatically, no OS patching, costs more even at idle.
-- **[`aws/*.json`](aws)** — IAM policy templates for an OIDC-based GitHub
-  Actions → AWS pipeline (no stored AWS keys at all) — needs
-  `iam:CreateRole` permissions a Learner Lab account won't grant, so it
-  only makes sense on a personal account.
+For later, once you're on a personal AWS account and want the fuller
+"production" pattern instead of a single EC2 box: run the same Docker image
+on ECS Fargate behind a Load Balancer (scales automatically, no OS
+patching), and swap the Docker Hub + SSH pipeline for an OIDC-based GitHub
+Actions → AWS one (no stored keys at all). Both need IAM permissions
+(`iam:CreateRole`, an OIDC provider) that a Learner Lab account won't grant,
+so they only make sense once you're off Academy infrastructure.
 
 ### Custom domain checklist (optional)
 - Register a domain (Route 53, Namecheap, etc.)
