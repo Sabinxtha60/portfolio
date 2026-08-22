@@ -48,4 +48,4 @@ jobs:
         run: |
           ssh -t ubuntu@$SERVER_IP -i pem.pem 'docker pull sabinxtha60/sabin-portfolio'
           ssh -t ubuntu@$SERVER_IP -i pem.pem 'docker stop sabin-portfolio-site || true; docker rm sabin-portfolio-site || true'
-          ssh -t ubuntu@$SERVER_IP -i pem.pem 'docker run --name sabin-portfolio-site -p 80:80 -d sabinxtha60/sabin-portfolio'
+          ssh -t ubuntu@$SERVER_IP -i pem.pem 'docker run --name sabin-portfolio-site -p 80:80 --restart unless-stopped -d sabinxtha60/sabin-portfolio'
