@@ -111,10 +111,19 @@ Resources:
 
       KeyName: !Ref KeyPair
 
-      # Network settings
-      SubnetId: !Ref Subnet
-      SecurityGroupIds:
-        - !Ref SecurityGroup
+      # Public IP declared explicitly (rather than left to the subnet's
+      # implicit auto-assign default) so it's visible/auditable straight
+      # from the template. It's required here: the CI/CD pipeline (see
+      # deploy-aws.yml) reaches this box over SSH from GitHub-hosted
+      # runners, and the site itself must be reachable on port 80 — both
+      # need a public IP. The ElasticIP resource below then attaches a
+      # stable address to this same network interface.
+      NetworkInterfaces:
+        - DeviceIndex: "0"
+          AssociatePublicIpAddress: true
+          SubnetId: !Ref Subnet
+          GroupSet:
+            - !Ref SecurityGroup
 
       # IMDSv2 only — closes the SSRF-to-instance-credential-theft path
       # IMDSv1 leaves open.
