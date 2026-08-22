@@ -120,6 +120,11 @@ Resources:
       # stable address to this same network interface.
       NetworkInterfaces:
         - DeviceIndex: "0"
+          # checkov:skip=CKV_AWS_88: intentional — this box must be publicly
+          # reachable on 80 (the site) and 22 (CI/CD deploys over SSH from
+          # GitHub-hosted runners with no fixed IP to allowlist instead).
+          # Blast radius: no secrets/data on the instance itself, and
+          # access is still gated by the PEM key.
           AssociatePublicIpAddress: true
           SubnetId: !Ref Subnet
           GroupSet:
