@@ -4,7 +4,7 @@
 # final image tiny and free of any build tooling).
 # ---------------------------------------------------
 
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:latest AS runtime
 
 # Remove default nginx site content & config
 RUN rm -rf /usr/share/nginx/html/* /etc/nginx/conf.d/default.conf
